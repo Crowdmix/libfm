@@ -42,7 +42,6 @@
 #include <cstdlib>
 #include <cstdio>
 #include <iostream>
-#include <fstream>
 #include <string>
 #include <iterator>
 #include <algorithm>
@@ -62,7 +61,6 @@ using namespace std;
 
 int main(int argc, char **argv) { 
  	
- 	srand ( time(NULL) );
 	try {
 		CMDLine cmdline(argc, argv);
 		std::cout << "----------------------------------------------------------------------------" << std::endl;
@@ -98,16 +96,10 @@ int main(int argc, char **argv) {
 
 		const std::string param_relation	= cmdline.registerParameter("relation", "BS: filenames for the relations, default=''");
 
-		const std::string param_cache_size = cmdline.registerParameter("cache_size", "cache size for data storage (only applicable if data is in binary format), default=infty");
-				
+		const std::string param_cache_size	= cmdline.registerParameter("cache_size", "cache size for data storage (only applicable if data is in binary format), default=infty");
 
-		const std::string param_save_model_w0 = cmdline.registerParameter("save_model_w0", "write model w weights to text file; default = ''");
-		const std::string param_load_model_w0 = cmdline.registerParameter("load_model_w0", "load model w weights from text file; default = ''");
-		const std::string param_save_model_w = cmdline.registerParameter("save_model_w", "write model w weights to binary file; default = ''");
-		const std::string param_load_model_w = cmdline.registerParameter("load_model_w", "load model w weights from binary file; default = ''");
-		const std::string param_save_model_v = cmdline.registerParameter("save_model_v", "write model v weights to binary file; default = ''");
-		const std::string param_load_model_v = cmdline.registerParameter("load_model_v", "load model v weights from binary file; default = ''");
-
+		const std::string param_save_model 	= cmdline.registerParameter("save_model", "filename for writing the FM model");
+		const std::string param_load_model 	= cmdline.registerParameter("load_model", "filename for reading the FM model");
 
 		const std::string param_do_sampling	= "do_sampling";
 		const std::string param_do_multilevel	= "do_multilevel";
@@ -252,6 +244,20 @@ int main(int argc, char **argv) {
 			}			
 			fm.init();		
 			
+		}
+		
+		// (2.1) load the FM model
+		if (cmdline.hasParameter(param_load_model)) {
+			std::cout << "Reading FM model... \t" << std::endl;
+			if (cmdline.getValue(param_method).compare("sgd") || cmdline.getValue(param_method).compare("als")){ //load/save enabled only for SGD and ALS
+				if(!fm.loadModel(cmdline.getValue(param_load_model))){
+					std::cout << "WARNING: malformed model file. Nothing will be loaded." << std::endl;
+					fm.init();
+				}
+			}
+			else{
+				std::cout << "WARNING: load/save enabled only for SGD and ALS. Nothing will be loaded." << std::endl;
+			}
 		}
 
 		// (3) Setup the learning method:
@@ -398,60 +404,9 @@ int main(int argc, char **argv) {
 			fm.debug();			
 			fml->debug();			
 		}	
-		
-		
-		// () Load in the model to the factorization machine
-		if (cmdline.hasParameter(param_load_model_w0)) {
-			std::string filename = cmdline.getValue(param_load_model_w0);
-			std::cout << "reading " << filename << std::endl; std::cout.flush();
-			std::ifstream in(filename.c_str(), std::ios_base::in | std::ios_base::binary);
-			if (in.is_open()) {
-				in.read(reinterpret_cast<char*>(&fm.w0), sizeof(double));
-				in.close();
-			} else {
-				throw "could not open " + filename;
-			}
-		}
-		
-		if (cmdline.hasParameter(param_load_model_w)) {
-			std::string filename = cmdline.getValue(param_load_model_w);
-			fm.w.loadFromBinaryFile(filename);
-		}
 
-		if (cmdline.hasParameter(param_load_model_v)) {
-			std::string filename = cmdline.getValue(param_load_model_v);
-			fm.v.loadFromBinaryFile(filename);
-		}
-		
 		// () learn		
 		fml->learn(train, test);
-		
-		
-		// () Save the learned model
-		if (cmdline.hasParameter(param_save_model_w0)) {
-			std::string filename = cmdline.getValue(param_save_model_w0);
-			std::cout << "writing " << filename << std::endl; std::cout.flush();
-			std::ofstream out (filename.c_str());
-			if (out.is_open()) {
-				out << (double)fm.w0 << std::endl;
-				out.close();
-			} else {
-				throw "could not open " + filename;
-			}
-		}
-		
-		if (cmdline.hasParameter(param_save_model_w)) {
-			std::string filename = cmdline.getValue(param_save_model_w);
-			std::cout << "writing " << filename << std::endl; std::cout.flush();
-			fm.w.save(filename);
-		}
-		
-		if (cmdline.hasParameter(param_save_model_v)) {
-			std::string filename = cmdline.getValue(param_save_model_v);
-			std::cout << "writing " << filename << std::endl; std::cout.flush();
-			fm.v.save(filename);
-		}
-
 
 		// () Prediction at the end  (not for mcmc and als)
 		if (cmdline.getValue(param_method).compare("mcmc")) {
@@ -464,6 +419,12 @@ int main(int argc, char **argv) {
 			pred.setSize(test.num_cases);
 			fml->predict(test, pred);
 			pred.save(cmdline.getValue(param_out));	
+		}
+		
+		// () save the FM model
+		if (cmdline.hasParameter(param_save_model)) {
+			std::cout << "Writing FM model... \t" << std::endl;
+			fm.saveModel(cmdline.getValue(param_save_model));
 		}
 				 	
 
