@@ -424,12 +424,7 @@ int main(int argc, char **argv) {
 		// () save the FM model
 		if (cmdline.hasParameter(param_save_model)) {
 			std::cout << "Writing FM model... \t" << std::endl;
-			if (cmdline.getValue(param_method).compare("sgd") || cmdline.getValue(param_method).compare("als")){ //load/save enabled only for SGD and ALS
-				fm.saveModel(cmdline.getValue(param_save_model));
-			}
-			else{
-				std::cout << "WARNING: load/save enabled only for SGD and ALS. Nothing will be saved." << std::endl;
-			}
+			fm.saveModel(cmdline.getValue(param_save_model));
 		}
 				 	
 
