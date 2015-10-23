@@ -442,11 +442,13 @@ int main(int argc, char **argv) {
 		
 		if (cmdline.hasParameter(param_save_model_w)) {
 			std::string filename = cmdline.getValue(param_save_model_w);
+			std::cout << "writing " << filename << std::endl; std::cout.flush();
 			fm.w.save(filename);
 		}
 		
 		if (cmdline.hasParameter(param_save_model_v)) {
 			std::string filename = cmdline.getValue(param_save_model_v);
+			std::cout << "writing " << filename << std::endl; std::cout.flush();
 			fm.v.save(filename);
 		}
 
