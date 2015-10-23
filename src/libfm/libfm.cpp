@@ -126,7 +126,7 @@ int main(int argc, char **argv) {
 		if (! cmdline.hasParameter(param_method)) { cmdline.setValue(param_method, "mcmc"); }
 		if (! cmdline.hasParameter(param_init_stdev)) { cmdline.setValue(param_init_stdev, "0.1"); }
 		if (! cmdline.hasParameter(param_dim)) { cmdline.setValue(param_dim, "1,1,8"); }
-		
+
 		if (! cmdline.getValue(param_method).compare("als")) { // als is an mcmc without sampling and hyperparameter inference
 			cmdline.setValue(param_method, "mcmc");
 			if (! cmdline.hasParameter(param_do_sampling)) { cmdline.setValue(param_do_sampling, "0"); }
