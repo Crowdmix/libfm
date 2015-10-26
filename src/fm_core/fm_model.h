@@ -132,28 +132,30 @@ double fm_model::predict(sparse_row<FM_FLOAT>& x, DVector<double> &sum, DVector<
  * Write the FM model (all the parameters) in a file.
  */
 void fm_model::saveModel(std::string model_file_path){
-	std::ofstream out_model;
+	std::ofstream out_model_w0;
 	if (k0) {
-		out_model.open(model_file_path + "_bias");
-		out_model << w0 << std::endl;
-		out_model.close();
+		out_model_w0.open(model_file_path + "_bias");
+		out_model_w0 << w0 << std::endl;
+		out_model_w0.close();
 	}
+	std::ofstream out_model_w;
 	if (k1) {
-		out_model.open(model_file_path + "_unary");
+		out_model_w.open(model_file_path + "_unary");
 		for (uint i = 0; i<num_attribute; i++){
-			out_model <<	w(i) << std::endl;
+			out_model_w <<	w(i) << std::endl;
 		}
-		out_model.close();
+		out_model_w.close();
 	}
-	out_model.open(model_file_path + "_parwise");
+	std::ofstream out_model_vM;
+	out_model_vM.open(model_file_path + "_pairwise");
 	for (int f = 0; f < num_factor; f++) {
 		for (uint i = 0; i<num_attribute; i++){
-			out_model << v(f,i);
-			if (f!=num_factor-1){ out_model << '\t'; }
+			out_model_vM << v(f,i);
+			if (i!=num_attribute-1){ out_model_vM << '\t'; }
 		}
-		out_model << std::endl;
+		out_model_vM << std::endl;
 	}
-	out_model.close();
+	out_model_vM.close();
 }
 
 /*
